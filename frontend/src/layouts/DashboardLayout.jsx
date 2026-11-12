@@ -28,6 +28,7 @@ const NAV_BY_ROLE = {
   public_user: [
     { to: '/user/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/user/upload', label: 'Upload & OCR', icon: Upload },
+    { to: '/templates', label: 'Templates & Drafts', icon: FileText },
     { to: '/user/corrections', label: 'Correction Tracking', icon: ClipboardList },
     { to: '/verify', label: 'Verify Certificate', icon: CheckCircle2 },
     { to: '/user/profile', label: 'My Profile', icon: User },

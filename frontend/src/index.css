@@ -23,3 +23,27 @@
 .input-field {
   @apply block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20;
 }
+
+/* Accessible, touch-friendly interaction states shared across the app. */
+@layer base {
+  button, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 3px solid rgb(99 102 241 / 35%);
+    outline-offset: 2px;
+  }
+  input, select, textarea {
+    scroll-margin-top: 1rem;
+  }
+}
+
+.card {
+  @apply rounded-2xl;
+}
+
+@media (max-width: 640px) {
+  .card {
+    @apply p-4;
+  }
+}

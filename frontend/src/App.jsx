@@ -12,6 +12,8 @@ import VerifyCertificatePage from './pages/public/VerifyCertificatePage'
 import PrivacyPolicyPage from './pages/public/PrivacyPolicyPage'
 import TermsPage from './pages/public/TermsPage'
 import ContactPage from './pages/public/ContactPage'
+import TemplateGalleryPage from './pages/public/TemplateGalleryPage'
+import TemplateDraftEditorPage from './pages/public/TemplateDraftEditorPage'
 
 import UserDashboard from './pages/user/UserDashboard'
 import CertificateUploadPage from './pages/user/CertificateUploadPage'
@@ -48,6 +50,8 @@ export default function App() {
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/templates" element={<TemplateGalleryPage />} />
+            <Route path="/templates/edit/:templateId" element={<TemplateDraftEditorPage />} />
           </Route>
 
           <Route

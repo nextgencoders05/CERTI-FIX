@@ -26,6 +26,7 @@ export default function PublicLayout() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+            <Link to="/templates" className="hover:text-blue-600 transition">Templates</Link>
             <Link to="/verify" className="hover:text-blue-600 transition">Verify Certificate</Link>
             <Link to="/contact" className="hover:text-blue-600 transition">Contact</Link>
             <Link to="/privacy" className="hover:text-blue-600 transition">Privacy</Link>
