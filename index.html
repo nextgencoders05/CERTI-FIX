@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CertiFix AI – Interactive Certificate Studio & AI Prompt Editor</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-4 sm:px-6 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
+          CF
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-slate-900">CertiFix <span class="text-violet-600">AI Studio</span></h1>
+            <span class="hidden sm:inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200">
+              GitHub Pages Ready
+            </span>
+          </div>
+          <p class="text-xs text-slate-500">Templates, Upload &amp; Chat-Prompt Certificate Editor</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <button id="tabStudioBtn" type="button" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-blue-700 shadow-sm">
+          Studio &amp; AI Chat
+        </button>
+        <button id="tabTemplatesBtn" type="button" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900">
+          Templates Gallery (8)
+        </button>
+        <button id="tabVerifyBtn" type="button" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900">
+          Verify ID
+        </button>
+        <button id="tabPromptBtn" type="button" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900">
+          Master Prompt
+        </button>
+      </div>
+
+      <!-- Quick Export Buttons -->
+      <div class="flex items-center gap-2">
+        <button id="downloadPngBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition">
+          Download PNG
+        </button>
+        <button id="downloadPdfBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 px-3.5 py-2 text-xs font-semibold text-white hover:from-blue-700 hover:to-violet-700 shadow-sm transition">
+          Download Official PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast Banner -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 hidden rounded-xl bg-slate-900 text-white px-4 py-3 text-xs sm:text-sm font-medium shadow-xl border border-slate-700 flex items-center gap-2">
+    <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+    <span id="toastText">Updated!</span>
+  </div>
+
+  <!-- Main Workspace Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+    <!-- VIEW 1: STUDIO & AI PROMPT EDITOR -->
+    <section id="viewStudio" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Left Column: Mode Switcher, Template Picker / Upload & Manual Controls (4 cols) -->
+      <div class="lg:col-span-4 space-y-5">
+
+        <!-- Source Mode Selector -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-bold text-slate-900">1. Choose Certificate Source</h2>
+            <button id="randomCertBtn" type="button" class="text-xs font-semibold text-violet-600 hover:text-violet-800 underline">
+              Randomize Sample
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="modeTemplateBtn" type="button" class="py-2.5 px-3 rounded-xl border text-xs font-semibold transition border-blue-600 bg-blue-50 text-blue-700">
+              Ready Templates
+            </button>
+            <button id="modeUploadBtn" type="button" class="py-2.5 px-3 rounded-xl border text-xs font-semibold transition border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+              Upload Certificate
+            </button>
+          </div>
+
+          <!-- Template Selector Strip -->
+          <div id="templatePickerPanel" class="mt-4 space-y-2">
+            <label for="quickTemplateSelect" class="block text-xs font-medium text-slate-600">Select Design Template:</label>
+            <select id="quickTemplateSelect" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-blue-500 focus:outline-none">
+            </select>
+          </div>
+
+          <!-- Upload Certificate Panel -->
+          <div id="uploadPickerPanel" class="mt-4 hidden space-y-3">
+            <label for="certFileInput" class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 text-center cursor-pointer hover:border-blue-500 transition">
+              <span class="text-xs font-bold text-blue-700">Click to Upload Your Certificate (PNG / JPG)</span>
+              <span class="text-[11px] text-slate-500 mt-1">Or upload &amp; use AI Chat to replace Name, Course, or Date</span>
+              <input id="certFileInput" type="file" accept="image/*" class="hidden" />
+            </label>
+            <div id="uploadedStatusBox" class="hidden rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-xs text-emerald-800 flex items-center justify-between">
+              <span id="uploadedFileName" class="truncate font-medium">uploaded_cert.png</span>
+              <button id="clearUploadBtn" type="button" class="text-rose-600 font-semibold hover:underline ml-2">Remove</button>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
+              <span>Overlay Smart Text Patch on Upload:</span>
+              <input id="overlayOnUploadToggle" type="checkbox" checked class="h-4 w-4 rounded border-slate-300 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Direct Field Editor -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900">2. Certificate Fields (Live Sync)</h2>
+            <span id="certUidBadge" class="font-mono text-[11px] font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">CFX-884920</span>
+          </div>
+
+          <div>
+            <label for="fieldName" class="block text-xs font-medium text-slate-600 mb-1">Recipient Name</label>
+            <input id="fieldName" type="text" value="Arun Prakash S" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-900 focus:border-blue-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <label for="fieldCourse" class="block text-xs font-medium text-slate-600 mb-1">Course / Program / Achievement Title</label>
+            <input id="fieldCourse" type="text" value="Full-Stack AI &amp; Machine Learning Internship" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-none" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label for="fieldOrg" class="block text-xs font-medium text-slate-600 mb-1">Organization / Issuer</label>
+              <input id="fieldOrg" type="text" value="TechNova AI Academy" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="fieldCategory" class="block text-xs font-medium text-slate-600 mb-1">Header Badge</label>
+              <input id="fieldCategory" type="text" value="CERTIFICATE OF INTERNSHIP" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label for="fieldDate" class="block text-xs font-medium text-slate-600 mb-1">Issue Date</label>
+              <input id="fieldDate" type="text" value="2026-11-13" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="fieldGrade" class="block text-xs font-medium text-slate-600 mb-1">Grade / Score</label>
+              <input id="fieldGrade" type="text" value="Distinction (98%)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label for="fieldSigner" class="block text-xs font-medium text-slate-600 mb-1">Signatory</label>
+              <input id="fieldSigner" type="text" value="Dr. R. Subramanian" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Center / Right Column: Live Certificate Canvas + AI Chat Command Prompt (8 cols) -->
+      <div class="lg:col-span-8 space-y-5">
+
+        <!-- Live Certificate Preview Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+              <h2 class="text-sm font-bold text-slate-900">Live Certificate Preview</h2>
+              <span id="activeTemplateLabel" class="text-xs text-slate-500">(Royal Navy Gold)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="sendCertToChatBtn" type="button" class="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                Send Updated Preview to Chat
+              </button>
+            </div>
+          </div>
+
+          <div class="w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center p-2">
+            <canvas id="certCanvas" width="1100" height="760" class="w-full h-auto max-w-full rounded-lg shadow-md bg-white"></canvas>
+          </div>
+        </div>
+
+        <!-- AI Command Prompt Chat Box -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-violet-950 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-bold flex items-center gap-2">
+                <span>AI Certificate Command Prompt</span>
+                <span class="rounded-full bg-violet-500/30 border border-violet-400/40 px-2 py-0.5 text-[10px] font-semibold text-violet-200">
+                  Tamil + English Supported
+                </span>
+              </h3>
+              <p class="text-[11px] text-slate-300">
+                Type a command like <code class="text-amber-300">"change name to Karthik Kumar"</code> or <code class="text-amber-300">"நேம் Karthik மாத்து"</code> — AI edits &amp; sends the updated certificate!
+              </p>
+            </div>
+            <button id="clearChatBtn" type="button" class="text-[11px] text-slate-300 hover:text-white underline">
+              Clear Chat
+            </button>
+          </div>
+
+          <!-- Quick Suggestion Chips -->
+          <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-semibold text-slate-500 mr-1">Try Prompt:</span>
+            <button type="button" data-prompt="Change name to Praveen Kumar M" class="prompt-chip text-[11px] bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-full px-2.5 py-1 transition">
+              Change name to Praveen Kumar M
+            </button>
+            <button type="button" data-prompt="Change course to Advanced Data Science &amp; AI" class="prompt-chip text-[11px] bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-full px-2.5 py-1 transition">
+              Course: Data Science &amp; AI
+            </button>
+            <button type="button" data-prompt="Change organization to Google Developer Student Club and grade to Gold Medal" class="prompt-chip text-[11px] bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-full px-2.5 py-1 transition">
+              Org: GDSC + Gold Medal
+            </button>
+            <button type="button" data-prompt="Switch template to Cyber Purple" class="prompt-chip text-[11px] bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-full px-2.5 py-1 transition">
+              Template: Cyber Purple
+            </button>
+            <button type="button" data-prompt="நேம் Divya Dharshini மாத்து" class="prompt-chip text-[11px] bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-full px-2.5 py-1 transition">
+              நேம் Divya Dharshini மாத்து
+            </button>
+          </div>
+
+          <!-- Chat Messages Feed -->
+          <div id="chatMessages" class="p-4 space-y-3 max-h-80 overflow-y-auto custom-scrollbar bg-slate-50/40">
+          </div>
+
+          <!-- Chat Input Form -->
+          <form id="chatForm" class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+            <input
+              id="chatInput"
+              type="text"
+              placeholder="Command here... e.g. 'Change name to Surya Prakash, course to Python AI Bootcamp, date to 2026-12-01'"
+              class="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none"
+            />
+            <button type="submit" class="rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white hover:from-blue-700 hover:to-violet-700 shadow-sm transition">
+              Apply &amp; Send
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 2: TEMPLATES GALLERY -->
+    <section id="viewTemplates" class="hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Ready-Made Certificate Templates (8 Styles)</h2>
+          <p class="text-xs text-slate-500">Click any template below to load it into the Studio and customize with AI Chat prompts.</p>
+        </div>
+      </div>
+      <div id="templatesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      </div>
+    </section>
+
+    <!-- VIEW 3: CERTIFICATE VERIFICATION -->
+    <section id="viewVerify" class="hidden max-w-2xl mx-auto space-y-5">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">Verify Certificate Authenticity</h2>
+        <p class="text-xs text-slate-600">
+          Enter any Certificate ID generated in this session (or try your current active ID) to verify recipient details and issue history.
+        </p>
+        <div class="flex gap-2">
+          <input id="verifyInput" type="text" placeholder="Enter Certificate ID (e.g. CFX-884920)" class="flex-1 rounded-xl border border-slate-300 px-3.5 py-2 text-sm font-mono text-slate-900 focus:border-blue-600 focus:outline-none" />
+          <button id="verifyCheckBtn" type="button" class="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+            Verify Now
+          </button>
+        </div>
+        <div id="verifyResultBox" class="hidden rounded-xl border p-4 text-xs space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: COPYABLE MASTER PROMPT FOR AI BUILDERS -->
+    <section id="viewPrompt" class="hidden max-w-4xl mx-auto space-y-4">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Copy-Paste Master Prompt (For GitHub Copilot / v0 / Bolt / Cursor / ChatGPT)</h2>
+            <p class="text-xs text-slate-500">Use this single prompt whenever you want any AI tool to build or extend this exact interactive website.</p>
+          </div>
+          <button id="copyMasterPromptBtn" type="button" class="rounded-xl bg-violet-600 px-4 py-2 text-xs font-semibold text-white hover:bg-violet-700">
+            Copy Prompt
+          </button>
+        </div>
+        <pre id="masterPromptText" class="rounded-xl bg-slate-900 text-slate-100 p-4 text-xs font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto">Build a complete, GitHub Pages-ready interactive web application named "CertiFix AI – Smart Certificate Studio &amp; Chat Prompt Editor" that runs 100% in the browser without requiring backend server setup.
+
+Core Functional Requirements:
+1. Built-in Certificate Templates Gallery:
+   - Include 8 diverse, professional certificate templates (Royal Navy Gold, Cyber Purple Tech, Emerald Corporate, Crimson Academic Merit, Minimalist Slate, Sunset Creative Workshop, Classic Parchment, Modern Indigo).
+   - Provide a "Randomize Sample" button and 1-click template switching.
+2. Upload Existing Certificate Option:
+   - Allow users to upload their own certificate image (PNG/JPG).
+   - Render the uploaded certificate on the HTML5 Canvas and provide a smart overlay patch so users can replace the Recipient Name, Course Title, Date, or Grade directly via chat commands.
+3. AI Chat Command Prompt Editor (Chat-to-Edit):
+   - Provide an interactive chat prompt box where users type natural commands in English or Tamil (e.g., "Change name to Arun Prakash", "Change course to Full Stack AI", "Change date to 2026-11-15", "நேம் Karthik மாத்து", "Switch template to Cyber Purple").
+   - Parse the user's command immediately, update the certificate fields on the live canvas, and reply in the chat thread with an inline snapshot of the updated certificate and a 1-click Download button ("Edited &amp; Sent").
+4. Export &amp; Verification:
+   - Support instant High-Resolution PNG download and PDF export (via jsPDF) with a dynamically drawn scannable QR verification matrix and unique Certificate ID (CFX-XXXXXX).</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- 1. TEMPLATES INVENTORY ---
+    const TEMPLATES = [
+      {
+        id: 'royal-navy',
+        name: 'Royal Navy Gold',
+        badge: 'CERTIFICATE OF INTERNSHIP',
+        bgPrimary: '#ffffff',
+        bgSecondary: '#f8fafc',
+        borderOuter: '#1e3a8a',
+        borderInner: '#d97706',
+        titleColor: '#1e3a8a',
+        nameColor: '#0f172a',
+        accentColor: '#d97706',
+        fontStyle: 'serif'
+      },
+      {
+        id: 'cyber-purple',
+        name: 'Cyber Purple Tech',
+        badge: 'CERTIFICATE OF COMPLETION',
+        bgPrimary: '#0f172a',
+        bgSecondary: '#1e1b4b',
+        borderOuter: '#7c3aed',
+        borderInner: '#38bdf8',
+        titleColor: '#38bdf8',
+        nameColor: '#ffffff',
+        accentColor: '#a78bfa',
+        fontStyle: 'sans'
+      },
+      {
+        id: 'emerald-exec',
+        name: 'Emerald Executive',
+        badge: 'CERTIFICATE OF EXPERIENCE',
+        bgPrimary: '#ffffff',
+        bgSecondary: '#ecfdf5',
+        borderOuter: '#065f46',
+        borderInner: '#10b981',
+        titleColor: '#065f46',
+        nameColor: '#064e3b',
+        accentColor: '#059669',
+        fontStyle: 'serif'
+      },
+      {
+        id: 'crimson-honors',
+        name: 'Crimson Academic Merit',
+        badge: 'CERTIFICATE OF ACHIEVEMENT',
+        bgPrimary: '#fffbeb',
+        bgSecondary: '#fef3c7',
+        borderOuter: '#991b1b',
+        borderInner: '#b45309',
+        titleColor: '#991b1b',
+        nameColor: '#1f2937',
+        accentColor: '#b45309',
+        fontStyle: 'cinzel'
+      },
+      {
+        id: 'minimal-slate',
+        name: 'Minimalist Slate Modern',
+        badge: 'WORKSHOP CERTIFICATE',
+        bgPrimary: '#ffffff',
+        bgSecondary: '#f1f5f9',
+        borderOuter: '#334155',
+        borderInner: '#64748b',
+        titleColor: '#0f172a',
+        nameColor: '#2563eb',
+        accentColor: '#475569',
+        fontStyle: 'sans'
+      },
+      {
+        id: 'sunset-creative',
+        name: 'Sunset Creative Bootcamp',
+        badge: 'TRAINING CERTIFICATE',
+        bgPrimary: '#fff7ed',
+        bgSecondary: '#ffedd5',
+        borderOuter: '#c2410c',
+        borderInner: '#ec4899',
+        titleColor: '#9a3412',
+        nameColor: '#be185d',
+        accentColor: '#ea580c',
+        fontStyle: 'sans'
+      },
+      {
+        id: 'classic-parchment',
+        name: 'Classic Ivory Parchment',
+        badge: 'PARTICIPATION CERTIFICATE',
+        bgPrimary: '#fefce8',
+        bgSecondary: '#fef9c3',
+        borderOuter: '#713f12',
+        borderInner: '#a16207',
+        titleColor: '#713f12',
+        nameColor: '#422006',
+        accentColor: '#ca8a04',
+        fontStyle: 'cinzel'
+      },
+      {
+        id: 'indigo-pro',
+        name: 'Modern Indigo SaaS',
+        badge: 'PROFESSIONAL CERTIFICATION',
+        bgPrimary: '#ffffff',
+        bgSecondary: '#eef2ff',
+        borderOuter: '#4338ca',
+        borderInner: '#6366f1',
+        titleColor: '#312e81',
+        nameColor: '#4338ca',
+        accentColor: '#6366f1',
+        fontStyle: 'sans'
+      }
+    ];
+
+    const RANDOM_SAMPLES = [
+      {
+        name: 'Karthik Subramanian',
+        course: 'Cloud Architecture & Kubernetes Bootcamp',
+        org: 'AWS Community Builders India',
+        category: 'WORKSHOP CERTIFICATE',
+        date: '2026-11-13',
+        grade: 'Excellence (99%)',
+        signer: 'S. Venkatesh, Cloud Lead'
+      },
+      {
+        name: 'Divya Dharshini R',
+        course: 'Generative AI & Large Language Models',
+        org: 'IITM Research Park AI Lab',
+        category: 'CERTIFICATE OF INTERNSHIP',
+        date: '2026-10-28',
+        grade: 'Grade A+ (Honors)',
+        signer: 'Dr. M. Balakrishnan'
+      },
+      {
+        name: 'Praveen Kumar M',
+        course: 'Full-Stack React & FastAPI Engineering',
+        org: 'NextGen Software Institute',
+        category: 'COURSE COMPLETION CERTIFICATE',
+        date: '2026-11-05',
+        grade: 'Distinction (96%)',
+        signer: 'Anita Raj, Director'
+      },
+      {
+        name: 'Meera Krishnan',
+        course: 'Cybersecurity & Ethical Hacking Finals',
+        org: 'National Cyber Defense Forum',
+        category: 'ACHIEVEMENT CERTIFICATE',
+        date: '2026-09-19',
+        grade: '1st Place Winner',
+        signer: 'Vikram Sethi, CISO'
+      }
+    ];
+
+    // --- 2. APPLICATION STATE ---
+    const state = {
+      activeTab: 'studio',
+      sourceMode: 'template', // 'template' | 'upload'
+      selectedTemplateId: 'royal-navy',
+      uploadedImage: null,
+      uploadedFileName: '',
+      overlayOnUpload: true,
+      certUid: 'CFX-884920',
+      recipientName: 'Arun Prakash S',
+      courseTitle: 'Full-Stack AI & Machine Learning Internship',
+      orgName: 'TechNova AI Academy',
+      categoryBadge: 'CERTIFICATE OF INTERNSHIP',
+      issueDate: '2026-11-13',
+      grade: 'Distinction (98%)',
+      signer: 'Dr. R. Subramanian',
+      issuedRegistry: {}
+    };
+
+    // Save current record into verification registry
+    function registerCurrentCertificate() {
+      state.issuedRegistry[state.certUid] = {
+        uid: state.certUid,
+        recipientName: state.recipientName,
+        courseTitle: state.courseTitle,
+        orgName: state.orgName,
+        categoryBadge: state.categoryBadge,
+        issueDate: state.issueDate,
+        grade: state.grade,
+        signer: state.signer,
+        updatedAt: new Date().toLocaleTimeString()
+      };
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      const text = document.getElementById('toastText');
+      text.textContent = msg;
+      banner.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 2800);
+    }
+
+    // --- 3. DETERMINISTIC QR MATRIX DRAWER ---
+    function drawQrMatrix(ctx, x, y, size, seedText) {
+      const cells = 21;
+      const cellSize = size / cells;
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x - 4, y - 4, size + 8, size + 8);
+      ctx.fillStyle = '#0f172a';
+
+      let hash = 2166136261;
+      for (let i = 0; i < seedText.length; i++) {
+        hash ^= seedText.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+
+      function isFinder(r, c) {
+        const topL = r < 7 && c < 7;
+        const topR = r < 7 && c >= cells - 7;
+        const botL = r >= cells - 7 && c < 7;
+        return topL || topR || botL;
+      }
+
+      function drawFinderPattern(ox, oy) {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(ox, oy, 7 * cellSize, 7 * cellSize);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(ox + cellSize, oy + cellSize, 5 * cellSize, 5 * cellSize);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(ox + 2 * cellSize, oy + 2 * cellSize, 3 * cellSize, 3 * cellSize);
+      }
+
+      drawFinderPattern(x, y);
+      drawFinderPattern(x + (cells - 7) * cellSize, y);
+      drawFinderPattern(x, y + (cells - 7) * cellSize);
+
+      for (let r = 0; r < cells; r++) {
+        for (let c = 0; c < cells; c++) {
+          if (isFinder(r, c)) continue;
+          const bit = ((hash ^ (r * 31 + c * 17)) & 3) === 0 || ((r + c + hash) % 5 === 0);
+          if (bit) {
+            ctx.fillRect(x + c * cellSize, y + r * cellSize, Math.ceil(cellSize), Math.ceil(cellSize));
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    // --- 4. CERTIFICATE CANVAS RENDERER ---
+    function renderCertificateToCanvas(targetCanvas, customTemplate) {
+      const canvas = targetCanvas || document.getElementById('certCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const tpl = customTemplate || TEMPLATES.find(t => t.id === state.selectedTemplateId) || TEMPLATES[0];
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Mode B: Uploaded image background
+      if (!customTemplate && state.sourceMode === 'upload' && state.uploadedImage) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(state.uploadedImage, 0, 0, w, h);
+
+        if (state.overlayOnUpload) {
+          // Draw clean smart correction overlay band on uploaded image
+          ctx.save();
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+          ctx.strokeStyle = tpl.borderOuter;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(110, 210, w - 220, 340, 18);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#475569';
+          ctx.font = '600 16px Inter, sans-serif';
+          ctx.fillText(state.orgName.toUpperCase() + ' • ' + state.categoryBadge, w / 2, 255);
+
+          ctx.fillStyle = tpl.nameColor === '#ffffff' ? '#1e3a8a' : tpl.nameColor;
+          ctx.font = '700 44px "Playfair Display", Georgia, serif';
+          ctx.fillText(state.recipientName, w / 2, 325);
+
+          ctx.fillStyle = '#334155';
+          ctx.font = '500 20px Inter, sans-serif';
+          ctx.fillText('has successfully completed', w / 2, 368);
+
+          ctx.fillStyle = '#0f172a';
+          ctx.font = '700 26px Inter, sans-serif';
+          ctx.fillText(state.courseTitle, w / 2, 412);
+
+          ctx.fillStyle = '#059669';
+          ctx.font = '600 17px Inter, sans-serif';
+          ctx.fillText(`Grade: ${state.grade}   |   Date: ${state.issueDate}   |   ID: ${state.certUid}`, w / 2, 462);
+
+          ctx.fillStyle = '#475569';
+          ctx.font = '600 15px Inter, sans-serif';
+          ctx.fillText(`Authorized Signatory: ${state.signer}`, w / 2, 515);
+
+          drawQrMatrix(ctx, w - 215, 440, 82, state.certUid + state.recipientName);
+          ctx.restore();
+        }
+        registerCurrentCertificate();
+        return;
+      }
+
+      // Mode A: Built-in Vector Template
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, tpl.bgPrimary);
+      grad.addColorStop(1, tpl.bgSecondary);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Decorative Corner Ribbon Geometry
+      ctx.save();
+      ctx.fillStyle = tpl.borderOuter;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(150, 0);
+      ctx.lineTo(0, 150);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(w, h);
+      ctx.lineTo(w - 150, h);
+      ctx.lineTo(w, h - 150);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Outer Frame
+      ctx.strokeStyle = tpl.borderOuter;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(32, 32, w - 64, h - 64);
+
+      // Inner Accent Frame
+      ctx.strokeStyle = tpl.borderInner;
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(48, 48, w - 96, h - 96);
+
+      // Organization Header
+      ctx.textAlign = 'center';
+      ctx.fillStyle = tpl.accentColor;
+      ctx.font = '700 18px Inter, sans-serif';
+      ctx.fillText(state.orgName.toUpperCase(), w / 2, 118);
+
+      // Certificate Main Header
+      ctx.fillStyle = tpl.titleColor;
+      const titleFont = tpl.fontStyle === 'cinzel' ? '"Cinzel", Georgia, serif' : 'Inter, sans-serif';
+      ctx.font = `700 36px ${titleFont}`;
+      ctx.fillText(state.categoryBadge.toUpperCase(), w / 2, 175);
+
+      // Accent Divider Line
+      ctx.strokeStyle = tpl.accentColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 140, 198);
+      ctx.lineTo(w / 2 + 140, 198);
+      ctx.stroke();
+
+      // Subtitle
+      const isDark = tpl.bgPrimary === '#0f172a';
+      ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
+      ctx.font = '500 18px Inter, sans-serif';
+      ctx.fillText('This official credential is proudly presented to', w / 2, 248);
+
+      // Recipient Name
+      ctx.fillStyle = tpl.nameColor;
+      const nameFont = tpl.fontStyle === 'sans' ? '800 50px Inter, sans-serif' : '700 52px "Playfair Display", Georgia, serif';
+      ctx.font = nameFont;
+      ctx.fillText(state.recipientName || 'Recipient Name', w / 2, 325);
+
+      // Name Underline
+      ctx.strokeStyle = tpl.borderInner;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 230, 345);
+      ctx.lineTo(w / 2 + 230, 345);
+      ctx.stroke();
+
+      // Completion Lead-in
+      ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
+      ctx.font = '500 18px Inter, sans-serif';
+      ctx.fillText('for successfully completing and demonstrating excellence in', w / 2, 392);
+
+      // Course / Achievement Title
+      ctx.fillStyle = tpl.titleColor;
+      ctx.font = '700 28px Inter, sans-serif';
+      ctx.fillText(state.courseTitle || 'Course Title', w / 2, 438);
+
+      // Grade Pill
+      if (state.grade) {
+        ctx.fillStyle = tpl.accentColor;
+        ctx.font = '700 18px Inter, sans-serif';
+        ctx.fillText(`Result / Standing: ${state.grade}`, w / 2, 482);
+      }
+
+      // Gold/Accent Seal Medallion in Center-Bottom
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(w / 2, 585, 42, 0, Math.PI * 2);
+      ctx.fillStyle = tpl.borderInner;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = tpl.borderOuter;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 11px Inter, sans-serif';
+      ctx.fillText('CERTIFIX AI', w / 2, 581);
+      ctx.font = '600 10px Inter, sans-serif';
+      ctx.fillText('VERIFIED', w / 2, 596);
+      ctx.restore();
+
+      // Left Footer: Issue Date & Certificate ID
+      ctx.textAlign = 'left';
+      ctx.fillStyle = isDark ? '#e2e8f0' : '#1e293b';
+      ctx.font = '700 15px Inter, sans-serif';
+      ctx.fillText(`Issue Date: ${state.issueDate}`, 95, 595);
+      ctx.font = '600 14px monospace';
+      ctx.fillStyle = isDark ? '#94a3b8' : '#475569';
+      ctx.fillText(`Certificate ID: ${state.certUid}`, 95, 622);
+      ctx.font = '500 12px Inter, sans-serif';
+      ctx.fillText('Authentic • QR Verifiable Credential', 95, 645);
+
+      // Right Footer: Signatory Block & QR
+      ctx.textAlign = 'center';
+      const sigX = w - 290;
+      ctx.strokeStyle = isDark ? '#64748b' : '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(sigX - 95, 595);
+      ctx.lineTo(sigX + 95, 595);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#ffffff' : '#0f172a';
+      ctx.font = '700 16px Inter, sans-serif';
+      ctx.fillText(state.signer || 'Authorized Signatory', sigX, 618);
+      ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+      ctx.font = '500 12px Inter, sans-serif';
+      ctx.fillText(state.orgName, sigX, 638);
+
+      // Draw Scannable-Style QR Matrix
+      drawQrMatrix(ctx, w - 155, 555, 86, state.certUid + state.recipientName);
+
+      registerCurrentCertificate();
+    }
+
+    // --- 5. SYNC FORM INPUTS & UI ---
+    function syncInputsFromState() {
+      document.getElementById('fieldName').value = state.recipientName;
+      document.getElementById('fieldCourse').value = state.courseTitle;
+      document.getElementById('fieldOrg').value = state.orgName;
+      document.getElementById('fieldCategory').value = state.categoryBadge;
+      document.getElementById('fieldDate').value = state.issueDate;
+      document.getElementById('fieldGrade').value = state.grade;
+      document.getElementById('fieldSigner').value = state.signer;
+      document.getElementById('certUidBadge').textContent = state.certUid;
+      document.getElementById('quickTemplateSelect').value = state.selectedTemplateId;
+
+      const tpl = TEMPLATES.find(t => t.id === state.selectedTemplateId);
+      document.getElementById('activeTemplateLabel').textContent =
+        state.sourceMode === 'upload' && state.uploadedImage
+          ? `(Uploaded: ${state.uploadedFileName})`
+          : `(${tpl ? tpl.name : 'Custom'})`;
+    }
+
+    // --- 6. AI NATURAL LANGUAGE PROMPT PARSER (ENGLISH + TAMIL) ---
+    function parseAndApplyCommand(rawCommand) {
+      const cmd = rawCommand.trim();
+      const changes = [];
+
+      // 1. Check for template change
+      for (const tpl of TEMPLATES) {
+        const firstWord = tpl.name.split(' ')[0].toLowerCase();
+        if (cmd.toLowerCase().includes(tpl.id) || cmd.toLowerCase().includes(tpl.name.toLowerCase()) ||
+            ( cmd.toLowerCase().includes('template') && cmd.toLowerCase().includes(firstWord) )) {
+          state.selectedTemplateId = tpl.id;
+          state.sourceMode = 'template';
+          updateSourceModeUI();
+          changes.push(`Template → "${tpl.name}"`);
+          break;
+        }
+      }
+
+      // 2. Check for random sample command
+      if (/\b(random|randomize|sample)\b/i.test(cmd)) {
+        applyRandomSample();
+        changes.push('Loaded a randomized certificate sample');
+      }
+
+      // 3. Extract Name change (English & Tamil patterns)
+      const namePatterns = [
+        /(?:change\s+name\s+to|set\s+name\s+to|recipient\s+name\s+to|update\s+name\s+to|replace\s+name\s+with|name\s*[:=])\s*["']?([^"',;\n]+?)["']?(?=\s*(?:,|\band\s+(?:course|date|org|grade|title|sign)|$))/i,
+        /(?:நேம்|பெயர்)\s+["']?([^"',;\n]+?)["']?\s*(?:மாத்து|மாற்று|ஆக\s+மாற்று|change|போடு)/i,
+        /(?:நேம்|பெயர்)\s*[:=-]?\s*["']?([A-Za-z.\s]{2,40})["']?/i
+      ];
+      for (const pat of namePatterns) {
+        const m = cmd.match(pat);
+        if (m && m[1]) {
+          const cleanName = m[1].replace(/\b(ன்னு|என்று|ஆக)\b/gi, '').trim();
+          if (cleanName.length >= 2) {
+            state.recipientName = cleanName;
+            changes.push(`Recipient Name → "${cleanName}"`);
+            break;
+          }
+        }
+      }
+
+      // 4. Extract Course / Title change
+      const coursePatterns = [
+        /(?:change\s+(?:course|title|program)\s+to|set\s+(?:course|title)\s+to|(?:course|title|program)\s*[:=])\s*["']?([^"',;\n]+?)["']?(?=\s*(?:,|\band\s+(?:name|date|org|grade|sign)|$))/i,
+        /(?:கோர்ஸ்|படிப்பு)\s+["']?([^"',;\n]+?)["']?\s*(?:மாத்து|மாற்று)/i
+      ];
+      for (const pat of coursePatterns) {
+        const m = cmd.match(pat);
+        if (m && m[1]) {
+          state.courseTitle = m[1].trim();
+          changes.push(`Course Title → "${state.courseTitle}"`);
+          break;
+        }
+      }
+
+      // 5. Extract Organization change
+      const orgPatterns = [
+        /(?:change\s+(?:organization|org|issuer|college|company)\s+to|(?:organization|org|issuer)\s*[:=])\s*["']?([^"',;\n]+?)["']?(?=\s*(?:,|\band\s+(?:name|course|date|grade|sign)|$))/i
+      ];
+      for (const pat of orgPatterns) {
+        const m = cmd.match(pat);
+        if (m && m[1]) {
+          state.orgName = m[1].trim();
+          changes.push(`Organization → "${state.orgName}"`);
+          break;
+        }
+      }
+
+      // 6. Extract Date change
+      const datePatterns = [
+        /(?:change\s+date\s+to|set\s+date\s+to|date\s*[:=]|தேதி)\s*["']?([0-9]{4}-[0-9]{2}-[0-9]{2}|[0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4}|[A-Za-z]+\s+[0-9]{1,2},?\s+[0-9]{4})["']?/i
+      ];
+      for (const pat of datePatterns) {
+        const m = cmd.match(pat);
+        if (m && m[1]) {
+          state.issueDate = m[1].trim();
+          changes.push(`Issue Date → "${state.issueDate}"`);
+          break;
+        }
+      }
+
+      // 7. Extract Grade / Score change
+      const gradePatterns = [
+        /(?:change\s+(?:grade|score)\s+to|(?:grade|score)\s*[:=])\s*["']?([^"',;\n]+?)["']?(?=\s*(?:,|\band\s+|$))/i
+      ];
+      for (const pat of gradePatterns) {
+        const m = cmd.match(pat);
+        if (m && m[1]) {
+          state.grade = m[1].trim();
+          changes.push(`Grade → "${state.grade}"`);
+          break;
+        }
+      }
+
+      // 8. Extract Signatory change
+      const sigPatterns = [
+        /(?:change\s+(?:signer|signatory|signature)\s+to|(?:signer|signatory)\s*[:=])\s*["']?([^"',;\n]+?)["']?(?=\s*(?:,|$))/i
+      ];
+      for (const pat of sigPatterns) {
+        const m = cmd.match(pat);
+        if (m && m[1]) {
+          state.signer = m[1].trim();
+          changes.push(`Signatory → "${state.signer}"`);
+          break;
+        }
+      }
+
+      // 9. Fallback: if user typed a short name directly like "Surya Kumar" or "Name: Surya"
+      if (changes.length === 0 && cmd.length >= 2 && cmd.length <= 42 && !cmd.includes('?')) {
+        const stripped = cmd.replace(/^(name|change|to|edit|மாத்து|நேம்)\s+/i, '').trim();
+        if (stripped.length >= 2) {
+          state.recipientName = stripped;
+          changes.push(`Recipient Name → "${stripped}"`);
+        }
+      }
+
+      if (changes.length > 0) {
+        state.certUid = 'CFX-' + Math.floor(100000 + Math.random() * 900000);
+        syncInputsFromState();
+        renderCertificateToCanvas();
+      }
+
+      return changes;
+    }
+
+    // --- 7. CHAT UI & SNAPSHOT DELIVERY ---
+    function appendChatMessage(role, text, includeCertSnapshot = false) {
+      const container = document.getElementById('chatMessages');
+      const wrapper = document.createElement('div');
+      wrapper.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+      const bubble = document.createElement('div');
+      bubble.className =
+        role === 'user'
+          ? 'max-w-md rounded-2xl rounded-tr-sm bg-blue-600 text-white px-3.5 py-2 text-xs shadow-sm'
+          : 'max-w-lg rounded-2xl rounded-tl-sm bg-white border border-slate-200 text-slate-800 p-3 text-xs shadow-sm space-y-2.5';
+
+      const textEl = document.createElement('p');
+      textEl.className = 'leading-relaxed';
+      textEl.textContent = text;
+      bubble.appendChild(textEl);
+
+      if (includeCertSnapshot) {
+        const snapCanvas = document.getElementById('certCanvas');
+        const dataUrl = snapCanvas.toDataURL('image/png');
+
+        const card = document.createElement('div');
+        card.className = 'rounded-xl border border-slate-200 overflow-hidden bg-slate-50 p-2 space-y-2';
+
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.alt = 'Edited Certificate Snapshot';
+        img.className = 'w-full h-auto rounded-lg border border-slate-200';
+        card.appendChild(img);
+
+        const actionRow = document.createElement('div');
+        actionRow.className = 'flex items-center justify-between gap-2 pt-1';
+
+        const badge = document.createElement('span');
+        badge.className = 'font-mono text-[10px] font-semibold text-slate-500';
+        badge.textContent = `ID: ${state.certUid} • ${state.recipientName}`;
+
+        const dlLink = document.createElement('a');
+        dlLink.href = dataUrl;
+        dlLink.download = `${state.certUid}-${state.recipientName.replace(/\s+/g, '_')}.png`;
+        dlLink.className = 'inline-flex items-center rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700';
+        dlLink.textContent = 'Download Edited Certificate';
+
+        actionRow.appendChild(badge);
+        actionRow.appendChild(dlLink);
+        card.appendChild(actionRow);
+        bubble.appendChild(card);
+      }
+
+      wrapper.appendChild(bubble);
+      container.appendChild(wrapper);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // --- 8. TEMPLATES GALLERY BUILDER ---
+    function populateTemplatesUI() {
+      const select = document.getElementById('quickTemplateSelect');
+      const grid = document.getElementById('templatesGrid');
+      select.innerHTML = '';
+      grid.innerHTML = '';
+
+      TEMPLATES.forEach((tpl) => {
+        const opt = document.createElement('option');
+        opt.value = tpl.id;
+        opt.textContent = `${tpl.name} (${tpl.badge})`;
+        select.appendChild(opt);
+
+        // Card in Templates Gallery
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col';
+
+        const previewWrap = document.createElement('div');
+        previewWrap.className = 'p-2 bg-slate-100 border-b border-slate-200';
+        const miniCanvas = document.createElement('canvas');
+        miniCanvas.width = 1100;
+        miniCanvas.height = 760;
+        miniCanvas.className = 'w-full h-auto rounded-lg';
+        renderCertificateToCanvas(miniCanvas, tpl);
+        previewWrap.appendChild(miniCanvas);
+
+        const body = document.createElement('div');
+        body.className = 'p-3.5 flex-1 flex flex-col justify-between gap-3';
+        body.innerHTML = `
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">${tpl.name}</h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">${tpl.badge}</p>
+          </div>
+        `;
+
+        const useBtn = document.createElement('button');
+        useBtn.type = 'button';
+        useBtn.className = 'w-full rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 py-2 text-xs font-semibold transition';
+        useBtn.textContent = 'Use This Template';
+        useBtn.addEventListener('click', () => {
+          state.selectedTemplateId = tpl.id;
+          state.categoryBadge = tpl.badge;
+          state.sourceMode = 'template';
+          updateSourceModeUI();
+          syncInputsFromState();
+          renderCertificateToCanvas();
+          switchTab('studio');
+          showToast(`Selected "${tpl.name}" template`);
+        });
+
+        body.appendChild(useBtn);
+        card.appendChild(previewWrap);
+        card.appendChild(body);
+        grid.appendChild(card);
+      });
+    }
+
+    function applyRandomSample() {
+      const sample = RANDOM_SAMPLES[Math.floor(Math.random() * RANDOM_SAMPLES.length)];
+      const randomTpl = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
+      state.selectedTemplateId = randomTpl.id;
+      state.recipientName = sample.name;
+      state.courseTitle = sample.course;
+      state.orgName = sample.org;
+      state.categoryBadge = sample.category;
+      state.issueDate = sample.date;
+      state.grade = sample.grade;
+      state.signer = sample.signer;
+      state.certUid = 'CFX-' + Math.floor(100000 + Math.random() * 900000);
+      syncInputsFromState();
+      renderCertificateToCanvas();
+    }
+
+    function updateSourceModeUI() {
+      const modeTplBtn = document.getElementById('modeTemplateBtn');
+      const modeUpBtn = document.getElementById('modeUploadBtn');
+      const tplPanel = document.getElementById('templatePickerPanel');
+      const upPanel = document.getElementById('uploadPickerPanel');
+
+      if (state.sourceMode === 'template') {
+        modeTplBtn.className = 'py-2.5 px-3 rounded-xl border text-xs font-semibold transition border-blue-600 bg-blue-50 text-blue-700';
+        modeUpBtn.className = 'py-2.5 px-3 rounded-xl border text-xs font-semibold transition border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+        tplPanel.classList.remove('hidden');
+        upPanel.classList.add('hidden');
+      } else {
+        modeUpBtn.className = 'py-2.5 px-3 rounded-xl border text-xs font-semibold transition border-blue-600 bg-blue-50 text-blue-700';
+        modeTplBtn.className = 'py-2.5 px-3 rounded-xl border text-xs font-semibold transition border-slate-200 bg-white text-slate-600 hover:bg-slate-50';
+        upPanel.classList.remove('hidden');
+        tplPanel.classList.add('hidden');
+      }
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      const views = {
+        studio: document.getElementById('viewStudio'),
+        templates: document.getElementById('viewTemplates'),
+        verify: document.getElementById('viewVerify'),
+        prompt: document.getElementById('viewPrompt')
+      };
+      const btns = {
+        studio: document.getElementById('tabStudioBtn'),
+        templates: document.getElementById('tabTemplatesBtn'),
+        verify: document.getElementById('tabVerifyBtn'),
+        prompt: document.getElementById('tabPromptBtn')
+      };
+
+      Object.keys(views).forEach((k) => {
+        if (k === tabName) {
+          views[k].classList.remove('hidden');
+          btns[k].className = 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-white text-blue-700 shadow-sm';
+        } else {
+          views[k].classList.add('hidden');
+          btns[k].className = 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900';
+        }
+      });
+
+      if (tabName === 'templates') {
+        populateTemplatesUI();
+      }
+      if (tabName === 'verify') {
+        document.getElementById('verifyInput').value = state.certUid;
+      }
+    }
+
+    // --- 9. EVENT LISTENERS ---
+    window.addEventListener('DOMContentLoaded', () => {
+      populateTemplatesUI();
+      syncInputsFromState();
+      renderCertificateToCanvas();
+
+      appendChatMessage(
+        'assistant',
+        'வணக்கம்! Welcome to CertiFix AI Studio. Pick a template or upload your certificate, then type a prompt like "Change name to Karthik Kumar" or "நேம் Karthik மாத்து" — I will edit the certificate and send the updated copy right here!',
+        true
+      );
+
+      // Tab buttons
+      document.getElementById('tabStudioBtn').addEventListener('click', () => switchTab('studio'));
+      document.getElementById('tabTemplatesBtn').addEventListener('click', () => switchTab('templates'));
+      document.getElementById('tabVerifyBtn').addEventListener('click', () => switchTab('verify'));
+      document.getElementById('tabPromptBtn').addEventListener('click', () => switchTab('prompt'));
+
+      // Source mode buttons
+      document.getElementById('modeTemplateBtn').addEventListener('click', () => {
+        state.sourceMode = 'template';
+        updateSourceModeUI();
+        syncInputsFromState();
+        renderCertificateToCanvas();
+      });
+
+      document.getElementById('modeUploadBtn').addEventListener('click', () => {
+        state.sourceMode = 'upload';
+        updateSourceModeUI();
+        syncInputsFromState();
+        renderCertificateToCanvas();
+      });
+
+      document.getElementById('randomCertBtn').addEventListener('click', () => {
+        applyRandomSample();
+        appendChatMessage('assistant', `Randomized certificate for ${state.recipientName} (${state.courseTitle}).`, true);
+        showToast('Loaded random certificate sample!');
+      });
+
+      document.getElementById('quickTemplateSelect').addEventListener('change', (e) => {
+        state.selectedTemplateId = e.target.value;
+        const tpl = TEMPLATES.find(t => t.id === state.selectedTemplateId);
+        if (tpl) state.categoryBadge = tpl.badge;
+        syncInputsFromState();
+        renderCertificateToCanvas();
+      });
+
+      // Upload Certificate Image
+      document.getElementById('certFileInput').addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            state.uploadedImage = img;
+            state.uploadedFileName = file.name;
+            state.sourceMode = 'upload';
+            document.getElementById('uploadedFileName').textContent = file.name;
+            document.getElementById('uploadedStatusBox').classList.remove('hidden');
+            updateSourceModeUI();
+            syncInputsFromState();
+            renderCertificateToCanvas();
+            appendChatMessage(
+              'assistant',
+              `Uploaded "${file.name}". Now type any command in chat (e.g., "Change name to Arun Kumar") and I will apply the correction and send your updated certificate!`,
+              true
+            );
+            showToast('Certificate uploaded! Use Chat Prompt to edit.');
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('clearUploadBtn').addEventListener('click', () => {
+        state.uploadedImage = null;
+        state.uploadedFileName = '';
+        state.sourceMode = 'template';
+        document.getElementById('uploadedStatusBox').classList.add('hidden');
+        document.getElementById('certFileInput').value = '';
+        updateSourceModeUI();
+        syncInputsFromState();
+        renderCertificateToCanvas();
+      });
+
+      document.getElementById('overlayOnUploadToggle').addEventListener('change', (e) => {
+        state.overlayOnUpload = e.target.checked;
+        renderCertificateToCanvas();
+      });
+
+      // Live Manual Field Bindings
+      const bindField = (id, key) => {
+        document.getElementById(id).addEventListener('input', (e) => {
+          state[key] = e.target.value;
+          renderCertificateToCanvas();
+        });
+      };
+      bindField('fieldName', 'recipientName');
+      bindField('fieldCourse', 'courseTitle');
+      bindField('fieldOrg', 'orgName');
+      bindField('fieldCategory', 'categoryBadge');
+      bindField('fieldDate', 'issueDate');
+      bindField('fieldGrade', 'grade');
+      bindField('fieldSigner', 'signer');
+
+      // Send Current Snapshot to Chat
+      document.getElementById('sendCertToChatBtn').addEventListener('click', () => {
+        appendChatMessage('assistant', `Here is the updated certificate for ${state.recipientName} (${state.certUid}):`, true);
+        showToast('Sent updated certificate to chat!');
+      });
+
+      // Clear Chat
+      document.getElementById('clearChatBtn').addEventListener('click', () => {
+        document.getElementById('chatMessages').innerHTML = '';
+        appendChatMessage('assistant', 'Chat cleared. Type a command anytime to edit and receive your updated certificate.');
+      });
+
+      // Quick Prompt Suggestion Chips
+      document.querySelectorAll('.prompt-chip').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const promptText = btn.getAttribute('data-prompt');
+          document.getElementById('chatInput').value = promptText;
+          document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+        });
+      });
+
+      // Chat Form Submit
+      document.getElementById('chatForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        appendChatMessage('user', text, false);
+        input.value = '';
+
+        const applied = parseAndApplyCommand(text);
+        if (applied.length > 0) {
+          appendChatMessage(
+            'assistant',
+            `Done! Updated ${applied.join(' | ')}. Here is your edited certificate ready to download:`,
+            true
+          );
+          showToast('Certificate updated via AI Prompt!');
+        } else {
+          appendChatMessage(
+            'assistant',
+            'Try specifying what to change, for example: "Change name to Karthik Kumar" or "Change course to AI & Data Science" or "நேம் Karthik மாத்து".'
+          );
+        }
+      });
+
+      // Download PNG
+      document.getElementById('downloadPngBtn').addEventListener('click', () => {
+        const canvas = document.getElementById('certCanvas');
+        const link = document.createElement('a');
+        link.download = `${state.certUid}-${state.recipientName.replace(/\s+/g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('Downloaded PNG certificate!');
+      });
+
+      // Download Official PDF via jsPDF
+      document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        const canvas = document.getElementById('certCanvas');
+        const imgData = canvas.toDataURL('image/png');
+        if (window.jspdf && window.jspdf.jsPDF) {
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [1100, 760] });
+          pdf.addImage(imgData, 'PNG', 0, 0, 1100, 760);
+          pdf.save(`${state.certUid}-${state.recipientName.replace(/\s+/g, '_')}.pdf`);
+          showToast('Downloaded Official PDF certificate!');
+        } else {
+          const link = document.createElement('a');
+          link.download = `${state.certUid}.png`;
+          link.href = imgData;
+          link.click();
+        }
+      });
+
+      // Verify ID Button
+      document.getElementById('verifyCheckBtn').addEventListener('click', () => {
+        const q = document.getElementById('verifyInput').value.trim().toUpperCase();
+        const box = document.getElementById('verifyResultBox');
+        box.classList.remove('hidden');
+        const record = state.issuedRegistry[q];
+        if (record) {
+          box.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-900 space-y-1.5';
+          box.innerHTML = `
+            <p class="font-bold text-sm text-emerald-800">Verified Official Credential (${record.uid})</p>
+            <p><strong>Recipient:</strong> ${record.recipientName}</p>
+            <p><strong>Course / Title:</strong> ${record.courseTitle}</p>
+            <p><strong>Organization:</strong> ${record.orgName}</p>
+            <p><strong>Issue Date:</strong> ${record.issueDate} | <strong>Grade:</strong> ${record.grade}</p>
+          `;
+        } else {
+          box.className = 'rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800';
+          box.textContent = `No certificate found matching ID "${q}". Try verifying active ID: ${state.certUid}`;
+        }
+      });
+
+      // Copy Master Prompt Button
+      document.getElementById('copyMasterPromptBtn').addEventListener('click', () => {
+        const promptStr = document.getElementById('masterPromptText').textContent;
+        const ta = document.createElement('textarea');
+        ta.value = promptStr;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Master Prompt copied to clipboard!');
+      });
+    });
+  </script>
+</body>
+</html>
